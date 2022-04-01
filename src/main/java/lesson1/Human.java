@@ -1,6 +1,6 @@
 package lesson1;
 
-public class Human extends Participant implements Run, Jump {
+public class Human extends Participant implements Runable, Jumpable {
     private String name;
     private int age;
 

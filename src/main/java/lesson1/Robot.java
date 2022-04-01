@@ -1,6 +1,6 @@
 package lesson1;
 
-public class Robot extends Participant implements Run, Jump {
+public class Robot extends Participant implements Runable, Jumpable {
     private String model;
 
     public Robot(String model, int jumpHeight, int runDistance) {

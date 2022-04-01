@@ -1,6 +1,6 @@
 package lesson1;
 
-public class Cat extends Participant implements Run, Jump {
+public class Cat extends Participant implements Runable, Jumpable {
     private String name;
     private int age;
 
