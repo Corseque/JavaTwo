@@ -42,7 +42,7 @@ public class ExceptionApp {
         for (int i = 0; i < intArray.length; i++) {
             for (int j = 0; j < intArray.length; j++) {
                 if (strArray[i][j] instanceof String) {
-                    intArray[i][j] = Integer.parseInt (strArray[i][j]);
+                    intArray[i][j] = Integer.parseInt(strArray[i][j]);
                 } else {
                     throw new MyArrayDataException("Массив, который требуется преобразовать в int, состоит не из String");
                 }
