@@ -16,4 +16,12 @@ public class Contact {
     public String getPhoneNum() {
         return phoneNum;
     }
+
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "surname='" + surname + '\'' +
+                ", phoneNum='" + phoneNum + '\'' +
+                "}";
+    }
 }

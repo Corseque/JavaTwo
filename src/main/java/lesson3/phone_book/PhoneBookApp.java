@@ -21,6 +21,9 @@ public class PhoneBookApp {
         phoneBook.add("Smirnov", "+7-111-999-22-99");
         phoneBook.add("Baranov", "+7-235-888-27-18");
         phoneBook.add("Ivanov", "+7-222-555-66-44");
+        phoneBook.add("Ivanov", "+7-222-555-66-44");
+
+        System.out.println(phoneBook);
 
         String someName = "Ivanov";
         phoneBook.get(someName);
