@@ -6,40 +6,47 @@ public class TreadApp {
 
     static final int SIZE = 10_000_000;
     static final int HALF_SIZE = SIZE / 2;
+    static private final Object obj = new Object();
 
     public static void main(String[] args) {
-        float[] array = new float[SIZE];
-        initArray(array);
+        float[] array1 = new float[SIZE];
+        Arrays.fill(array1, 1);
         long a = System.currentTimeMillis();
-        array = calculateArray(array);
+        for (int i = 0; i < array1.length; i++) {
+            array1[i] = (float) (array1[i] * Math.sin(0.2f + i / 5) * Math.cos(0.2f + i / 5) * Math.cos(0.4f + i / 2));
+        }
         System.out.println("One thread time: " + (System.currentTimeMillis() - a) + " ms.");
 
+        float[] array2 = new float[SIZE];
+        Arrays.fill(array2, 1);
         a = System.currentTimeMillis();
-        float[] finalArray = initArray(array);
-        new Thread(() -> {
-            float[] arrayFirstHalf = new float[HALF_SIZE];
-            System.arraycopy(finalArray, 0, arrayFirstHalf, 0, HALF_SIZE);
-            arrayFirstHalf = calculateArray(arrayFirstHalf);
-            System.arraycopy(arrayFirstHalf, 0, finalArray, 0, HALF_SIZE);
+        float[] arrayFirstHalf = new float[HALF_SIZE];
+        float[] arraySecondHalf = new float[HALF_SIZE];
+        System.arraycopy(array2, 0, arrayFirstHalf, 0, HALF_SIZE);
+        System.arraycopy(array2, HALF_SIZE, arraySecondHalf, 0, HALF_SIZE);
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < arrayFirstHalf.length; i++) {
+                arrayFirstHalf[i] = (float) (arrayFirstHalf[i] * Math.sin(0.2f + i / 5) * Math.cos(0.2f + i / 5) * Math.cos(0.4f + i / 2));
+            }
         });
-        new Thread(() -> {
-            float[] arraySecondHalf = new float[HALF_SIZE];
-            System.arraycopy(finalArray, HALF_SIZE, arraySecondHalf, 0, HALF_SIZE);
-            arraySecondHalf = calculateArray(arraySecondHalf);
-            System.arraycopy(arraySecondHalf, 0, finalArray, HALF_SIZE, HALF_SIZE);
+        t1.start();
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < arraySecondHalf.length; i++) {
+                arraySecondHalf[i] = (float) (arraySecondHalf[i] * Math.sin(0.2f + (i + HALF_SIZE) / 5) * Math.cos(0.2f + (i + HALF_SIZE) / 5) * Math.cos(0.4f + (i + HALF_SIZE) / 2));
+            }
         });
-        System.out.println("Two threads time: " + (System.currentTimeMillis() - a) + " ms.");
-    }
+        t2.start();
 
-    static synchronized float[] initArray(float[] array) {
-        Arrays.fill(array, 1);
-        return array;
-    }
-
-    static synchronized float[] calculateArray(float[] array) {
-        for (int i = 0; i < array.length; i++) {
-            array[i] = (float)(array[i] * Math.sin(0.2f + i / 5) * Math.cos(0.2f + i / 5) * Math.cos(0.4f + i / 2));
+        try {
+            t1.join();
+            t2.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        return array;
+
+        System.arraycopy(arrayFirstHalf, 0, array2, 0, HALF_SIZE);
+        System.arraycopy(arraySecondHalf, 0, array2, HALF_SIZE, HALF_SIZE);
+        System.out.println("Two threads time: " + (System.currentTimeMillis() - a) + " ms.");
+        System.out.println(Arrays.equals(array1, array2));
     }
 }
