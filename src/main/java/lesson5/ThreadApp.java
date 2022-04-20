@@ -2,7 +2,7 @@ package lesson5;
 
 import java.util.Arrays;
 
-public class TreadApp {
+public class ThreadApp {
 
     static final int SIZE = 10_000_000;
     static final int HALF_SIZE = SIZE / 2;
