@@ -1,4 +1,6 @@
-package lesson6;
+package lesson7.client;
+
+import lesson7.constants.Constants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,19 +14,19 @@ public class ConnectionWindow extends JFrame {
     private static final int HEIGHT = 400;
 
     private final JPanel initPanel = new JPanel(new GridLayout(2,2));
-    private final JLabel serverAddress = new JLabel("Enter server address: ");
-    private final JLabel serverPort = new JLabel("Enter server port: ");
-    private final JTextField serverAddressField = new JTextField("localhost");
-    private final JTextField serverPortField = new JTextField("8089");
+    private final JLabel serverAddressLabel = new JLabel("Enter server address:");
+    private final JLabel serverPortLabel = new JLabel("Enter server port:");
+    private final JTextField serverAddressField = new JTextField(Constants.SERVER_ADDRESS);
+    private final JTextField serverPortField = new JTextField(Integer.toString(Constants.SERVER_PORT));
     private final JButton connectionBtn = new JButton("Connect");
 
     public ConnectionWindow(){
         this.setTitle("Connect to Echo chat");
         this.setBounds(POS_X, POS_Y, WIDTH, HEIGHT);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        initPanel.add(serverAddress);
+        initPanel.add(serverAddressLabel);
         initPanel.add(serverAddressField);
-        initPanel.add(serverPort);
+        initPanel.add(serverPortLabel);
         initPanel.add(serverPortField);
         this.add(initPanel, BorderLayout.CENTER);
         this.add(connectionBtn, BorderLayout.SOUTH);
@@ -32,7 +34,7 @@ public class ConnectionWindow extends JFrame {
         this.setVisible(true);
 
         connectionBtn.addActionListener(e -> {
-            EchoClient echoClient = new EchoClient();
+            Client echoClient = new Client();
             try {
                 echoClient.openConnection(serverAddressField.getText(), serverPortField.getText());
             } catch (IOException ex) {

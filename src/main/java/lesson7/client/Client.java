@@ -1,12 +1,19 @@
-package lesson6;
+package lesson7.client;
+
+import lesson7.constants.Constants;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
-public class EchoClient extends JFrame{
+public class Client extends JFrame{
 
     private static final int POS_X = 1200;
     private static final int POS_Y = 300;
@@ -15,10 +22,17 @@ public class EchoClient extends JFrame{
     private static final String NULL_TEXT = "";
     private static final String USER_NAME = "Olga";
 
+    //Панель авторизации
+    private final JPanel loginPanel = new JPanel(new FlowLayout());
+    private final JTextField loginField = new JTextField(10);
+    private final JTextField passField = new JTextField(10);
+    private final JButton loginBtn = new JButton("Login");
+
     // Список компонентов формы
     private final JPanel panelTop = new JPanel(new BorderLayout());
     private final JTextArea chatArea = new JTextArea();
     private final JScrollPane scrollChatArea = new JScrollPane(chatArea);
+    private final JList<String> nicknameList = new JList<String>();
 
     private final JPanel panelBottom = new JPanel(new BorderLayout());
     private final JTextField msgToChat = new JTextField();
@@ -28,7 +42,7 @@ public class EchoClient extends JFrame{
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
 
-    public EchoClient() {
+    public Client() {
         initClientUI();
     }
 
@@ -48,20 +62,21 @@ public class EchoClient extends JFrame{
                 String serverMessage;
                 while (true) {
                     serverMessage = dataInputStream.readUTF();
-                    if (serverMessage.equals("/end")) {
-                        System.out.println(USER_NAME + "disconnected from Echo server");
-//                        JOptionPane.showConfirmDialog(this, "Connection lost. Try to connect again?", "Connection lost", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                        closeConnection();
-                        this.setVisible(false);
-                        new EchoConnectionWindow();
+                    if (serverMessage.equals(Constants.END_COMMAND)) {
                         break;
                     }
-                    chatArea.append("Echo: " + serverMessage + "\n");
+                    chatArea.append(serverMessage + "\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            System.out.println(/*USER_NAME + */"User disconnected from Echo server");
+//                        JOptionPane.showConfirmDialog(this, "Connection lost. Try to connect again?", "Connection lost", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            closeConnection();
+            this.setVisible(false);
+            new ConnectionWindow();
         }).start();
+
     }
 
     private void sendMessage() {
@@ -70,7 +85,7 @@ public class EchoClient extends JFrame{
         }
         try {
             dataOutputStream.writeUTF(msgToChat.getText());
-            chatArea.append(USER_NAME + ": " + msgToChat.getText() + "\n");
+            //chatArea.append(USER_NAME + ": " + msgToChat.getText() + "\n");
             msgToChat.setText(NULL_TEXT);
         } catch (IOException e) {
             e.printStackTrace();
@@ -108,9 +123,24 @@ public class EchoClient extends JFrame{
         panelTop.add(scrollChatArea, BorderLayout.CENTER);
         panelBottom.add(msgToChat, BorderLayout.CENTER);
         panelBottom.add(enterChatMsgBtn, BorderLayout.EAST);
+
+        loginPanel.add(loginField);
+        loginPanel.add(passField);
+        loginPanel.add(loginBtn);
+
         this.add(panelTop, BorderLayout.CENTER);
         this.add(panelBottom, BorderLayout.SOUTH);
+        this.add(loginPanel, BorderLayout.NORTH);
+
         this.setVisible(true);
+
+        loginBtn.addActionListener(e -> {
+            try {
+                dataOutputStream.writeUTF(Constants.AUTH_COMMAND + " " + loginField.getText() + " " + passField.getText());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
 
         msgToChat.addKeyListener(new KeyAdapter() {
             @Override
