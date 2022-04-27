@@ -1,5 +1,7 @@
 package lesson7.server;
 
+import java.util.Optional;
+
 /**
  * Сервис аутентификации
  */
@@ -21,5 +23,5 @@ public interface AuthService {
      * @param password - пароль пользователя
      * @return никнейм найден = никнейм, не найден = null
      */
-    String getNickByLoginAndPass(String login, String password);
+    Optional<String> getNickByLoginAndPass(String login, String password);
 }

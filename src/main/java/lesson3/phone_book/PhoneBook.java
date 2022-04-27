@@ -5,7 +5,7 @@ import java.util.*;
 public class PhoneBook {
 //public class PhoneBook extends HashMap {
     private Contact contact;
-    private final ArrayList phoneBook = new ArrayList();
+    private final List phoneBook = new ArrayList();
 
     public PhoneBook() {
     }

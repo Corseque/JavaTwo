@@ -4,14 +4,15 @@ import lesson7.constants.Constants;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class Client extends JFrame{
 
@@ -20,7 +21,6 @@ public class Client extends JFrame{
     private static final int WIDTH = 600;
     private static final int HEIGHT = 800;
     private static final String NULL_TEXT = "";
-    private static final String USER_NAME = "Olga";
 
     //Панель авторизации
     private final JPanel loginPanel = new JPanel(new FlowLayout());
@@ -32,7 +32,10 @@ public class Client extends JFrame{
     private final JPanel panelTop = new JPanel(new BorderLayout());
     private final JTextArea chatArea = new JTextArea();
     private final JScrollPane scrollChatArea = new JScrollPane(chatArea);
-    private final JList<String> nicknameList = new JList<String>();
+    private final DefaultListModel listModel = new DefaultListModel();
+    private final JList<String> activeUsersList = new JList<>(listModel);
+    private final JScrollPane scrollNicknameList = new JScrollPane(activeUsersList);
+
 
     private final JPanel panelBottom = new JPanel(new BorderLayout());
     private final JTextField msgToChat = new JTextField();
@@ -41,6 +44,7 @@ public class Client extends JFrame{
     private Socket socket;
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
+    private String login;
 
     public Client() {
         initClientUI();
@@ -64,8 +68,23 @@ public class Client extends JFrame{
                     serverMessage = dataInputStream.readUTF();
                     if (serverMessage.equals(Constants.END_COMMAND)) {
                         break;
+                    } else if (serverMessage.startsWith(Constants.AUTH_OK_COMMAND)) {
+                        String[] tokens = serverMessage.split("\\s+");
+                        this.login = tokens[1];
+                        chatArea.append("Успешно авторизован как " + login + "\n");
+                    } else if (serverMessage.startsWith(Constants.CLIENT_LIST_COMMAND)) {
+//                        this.chatArea.append(serverMessage + "\n");
+                        String[] tokens = serverMessage.split("\\s+");
+                        this.listModel.clear();
+                        Arrays.stream(tokens)
+                                .skip(1)
+                                .forEach(token -> this.listModel.addElement(token));
+//                        for (int i = 1; i < tokens.length; i++) {
+//                            this.listModel.addElement(tokens[i]);
+//                        }
+                    } else {
+                        chatArea.append(serverMessage + "\n");
                     }
-                    chatArea.append(serverMessage + "\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -76,7 +95,6 @@ public class Client extends JFrame{
             this.setVisible(false);
             new ConnectionWindow();
         }).start();
-
     }
 
     private void sendMessage() {
@@ -85,7 +103,6 @@ public class Client extends JFrame{
         }
         try {
             dataOutputStream.writeUTF(msgToChat.getText());
-            //chatArea.append(USER_NAME + ": " + msgToChat.getText() + "\n");
             msgToChat.setText(NULL_TEXT);
         } catch (IOException e) {
             e.printStackTrace();
@@ -118,9 +135,11 @@ public class Client extends JFrame{
         chatArea.setLineWrap(true);
         chatArea.setWrapStyleWord(true);
         chatArea.setEditable(false);
-        scrollChatArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollChatArea.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollNicknameList.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
         panelTop.add(scrollChatArea, BorderLayout.CENTER);
+        panelTop.add(scrollNicknameList, BorderLayout.EAST);
         panelBottom.add(msgToChat, BorderLayout.CENTER);
         panelBottom.add(enterChatMsgBtn, BorderLayout.EAST);
 
@@ -152,6 +171,17 @@ public class Client extends JFrame{
         });
 
         enterChatMsgBtn.addActionListener(e -> sendMessage());
+
+        activeUsersList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JList list = (JList) e.getSource();
+                if (e.getClickCount() == 2) {
+                    msgToChat.setText(Constants.PRIVATE_MESSAGE_COMMAND + ": " + list.getSelectedValue() + " ");
+                    msgToChat.requestFocus();
+                }
+            }
+        });
     }
 
 }

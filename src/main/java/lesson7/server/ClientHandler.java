@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Optional;
 
 /**
  * Обработчик для конкретного клиента
@@ -52,17 +53,18 @@ public class ClientHandler {
             String str = dataInputStream.readUTF();
             if (str.startsWith(Constants.AUTH_COMMAND)) {
                 String[] tokens = str.split("\\s+"); // - \\s+ - обозначение >=1 пробелов, делени на массив из слов строки
-                String nick = server.getAuthService().getNickByLoginAndPass(tokens[1], tokens[2]);
-                if (nick != null) {
+                Optional<String> nick = server.getAuthService().getNickByLoginAndPass(tokens[1], tokens[2]);
+                if (nick.isPresent()) {
                     //авторизовались
-                    if (!server.isNickBusy(nick)) {
-                        this.nickname = nick;
-                        sendMessage("Server: " + Constants.AUTH_OK_COMMAND + " " + nick);
-                        server.broadcastMessage(nick + " вошёл в чат."); //отправка всем участникам информации о вошедшем пользователе
+                    if (!server.isNickBusy(nick.get())) {
+                        this.nickname = nick.get();
+                        sendMessage("Server: " + Constants.AUTH_OK_COMMAND + " " + nick.get());
+                        server.broadcastMessage(nick.get() + " вошёл в чат."); //отправка всем участникам информации о вошедшем пользователе
                         server.subscribe(this); //добавить пользователя для рассылки информации от сервера
+                        server.broadcastMessage(server.getActiveClients());
                         return;
                     } else {
-                        sendMessage("Nickname '" + nick + "' уже вошел в чат.");
+                        sendMessage("Nickname '" + nick.get() + "' уже вошел в чат.");
                     }
                 } else {
                     sendMessage("Server: Неверный логин/пароль");
@@ -82,15 +84,18 @@ public class ClientHandler {
     private void readMessage() throws IOException {
         while (true) {
             String messageFromClient = dataInputStream.readUTF();
-            if (messageFromClient.startsWith(Constants.PRIVATE_MESSAGE_COMMAND)) {
+            if (messageFromClient.startsWith(Constants.CLIENT_LIST_COMMAND)) {
+                sendMessage(server.getActiveClients());
+            } else if (messageFromClient.startsWith(Constants.PRIVATE_MESSAGE_COMMAND)) {
                 String[] tokens = messageFromClient.split("\\s+", 3);
                 server.privateMessage(nickname, tokens[1], nickname + ": " + tokens[2]);
             } else {
                 System.out.println("Сообщение от " + nickname + ": " + messageFromClient);
                 if (messageFromClient.equals(Constants.END_COMMAND)) {
                     break;
+                } else {
+                    server.broadcastMessage(nickname + ": " + messageFromClient);
                 }
-                server.broadcastMessage(nickname + ": " + messageFromClient);
             }
         }
     }
@@ -98,6 +103,7 @@ public class ClientHandler {
     private void closeConnection() {
         server.unsubscribe(this);
         server.broadcastMessage(nickname + " вышел из чата");
+        server.broadcastMessage(server.getActiveClients());
         try {
             dataInputStream.close();
         } catch (IOException exception) {
