@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MyServer {
     /**
@@ -24,7 +25,7 @@ public class MyServer {
 
     public MyServer() {
         try (ServerSocket serverSocket = new ServerSocket(Constants.SERVER_PORT)) {
-            authService = new BaseAuthService();
+            authService = new SQLiteAuthService();
             authService.start();
 
             while (true) {
@@ -43,7 +44,7 @@ public class MyServer {
         }
     }
 
-    public List<ClientHandler> getClients() {
+    public synchronized List<ClientHandler> getClients() {
         return clients;
     }
 
@@ -78,5 +79,27 @@ public class MyServer {
             if (client.getNickname().equals(nick)) return true;
         }
         return false;
+    }
+
+    public synchronized String getActiveClients() {
+        StringBuilder sb = new StringBuilder(Constants.CLIENT_LIST_COMMAND).append(" ");
+        sb.append(clients.stream()
+                .map(client -> client.getNickname())
+                .collect(Collectors.joining(" "))
+                );
+//        for (ClientHandler client : clients) {
+//            sb.append(client.getNickname()).append(" ");
+//        }
+        return sb.toString();
+    }
+
+    public synchronized String[] getActiveClientsArr() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(clients.stream()
+                .map(client -> client.getNickname())
+                .collect(Collectors.joining(" "))
+        );
+        String[] activeClients = sb.toString().split(" ");
+        return activeClients;
     }
 }

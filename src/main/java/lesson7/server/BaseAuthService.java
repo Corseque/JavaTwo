@@ -2,6 +2,7 @@ package lesson7.server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BaseAuthService implements AuthService {
 
@@ -37,12 +38,16 @@ public class BaseAuthService implements AuthService {
     }
 
     @Override
-    public String getNickByLoginAndPass(String login, String password) {
-        for (Entry entry : entries) {
-            if (entry.login.equals(login) && entry.password.equals(password)) {
-                return entry.nick;
-            }
-        }
-        return null;
+    public Optional<String> getNickByLoginAndPass(String login, String password) {
+        return entries.stream()
+                .filter(entry -> entry.login.equals(login) && entry.password.equals(password))
+                .map(entry -> entry.nick)
+                .findFirst();
+//        for (Entry entry : entries) {
+//            if (entry.login.equals(login) && entry.password.equals(password)) {
+//                return Optional.of(entry.nick);
+//            }
+//        }
+//        return Optional.empty();
     }
 }
