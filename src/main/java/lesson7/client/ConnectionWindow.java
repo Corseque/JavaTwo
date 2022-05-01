@@ -34,9 +34,9 @@ public class ConnectionWindow extends JFrame {
         this.setVisible(true);
 
         connectionBtn.addActionListener(e -> {
-            Client echoClient = new Client();
+            Client client = new Client();
             try {
-                echoClient.openConnection(serverAddressField.getText(), serverPortField.getText());
+                client.openConnection(serverAddressField.getText(), serverPortField.getText());
             } catch (IOException ex) {
                 System.out.println("Проблема с подключением к серверу " + serverAddressField.getText() + " на порту " + serverPortField.getText());
                 ex.printStackTrace();

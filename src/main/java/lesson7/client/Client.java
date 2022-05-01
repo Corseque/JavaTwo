@@ -8,9 +8,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -44,7 +42,7 @@ public class Client extends JFrame{
     private Socket socket;
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
-    private String login;
+    private String nickname;
 
     public Client() {
         initClientUI();
@@ -61,6 +59,8 @@ public class Client extends JFrame{
         }
         dataInputStream = new DataInputStream(socket.getInputStream());
         dataOutputStream = new DataOutputStream(socket.getOutputStream());
+
+
         new Thread(() -> {
             try {
                 String serverMessage;
@@ -70,12 +70,11 @@ public class Client extends JFrame{
                         break;
                     } else if (serverMessage.startsWith(Constants.AUTH_OK_COMMAND)) {
                         String[] tokens = serverMessage.split("\\s+");
-                        this.login = tokens[1];
-                        chatArea.append("Успешно авторизован как " + login + "\n");
+                        nickname = tokens[1];
+                        chatArea.append("Успешно авторизован как " + nickname + "\n");
                     } else if (serverMessage.startsWith(Constants.CLIENT_LIST_COMMAND)) {
-//                        this.chatArea.append(serverMessage + "\n");
                         String[] tokens = serverMessage.split("\\s+");
-                        this.listModel.clear();
+                        listModel.clear();
                         Arrays.stream(tokens)
                                 .skip(1)
                                 .forEach(token -> this.listModel.addElement(token));
@@ -89,7 +88,7 @@ public class Client extends JFrame{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println(/*USER_NAME + */"User disconnected from Echo server");
+            System.out.println(nickname + " disconnected from Echo server");
 //                        JOptionPane.showConfirmDialog(this, "Connection lost. Try to connect again?", "Connection lost", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             closeConnection();
             this.setVisible(false);
