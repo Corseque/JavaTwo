@@ -12,7 +12,7 @@ public class SQLiteAuthService implements AuthService {
     public void start() {
         try {
             connect();
-            //createTable();
+            createTable();
             //insertUsers();
             //dropTable();
         } catch (SQLException e) {
@@ -21,7 +21,7 @@ public class SQLiteAuthService implements AuthService {
     }
 
     private void connect() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:javadb.db");
+        connection = DriverManager.getConnection("jdbc:sqlite:src/main/java/lesson7/server/chat_db.db");
         statement = connection.createStatement();
     }
 

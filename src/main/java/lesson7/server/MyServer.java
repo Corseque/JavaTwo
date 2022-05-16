@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class MyServer {
@@ -19,14 +21,20 @@ public class MyServer {
      */
     private List<ClientHandler> clients = new ArrayList<>();
 
+    private ExecutorService executorService = Executors.newCachedThreadPool();
+
     private File chatLog;
+
+    public AuthService getAuthService() {
+        return authService;
+    }
 
     public File getChatLog() {
         return chatLog;
     }
 
-    public AuthService getAuthService() {
-        return authService;
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 
     public MyServer() {
@@ -55,6 +63,9 @@ public class MyServer {
             if (authService != null) {
                 authService.stop();
             }
+            if (!executorService.isShutdown()) {
+                executorService.shutdown();
+            }
         }
     }
 
@@ -68,11 +79,12 @@ public class MyServer {
             try (BufferedReader br = new BufferedReader(new FileReader(chatLog))) {
                 for (String line; (line = br.readLine()) != null; ) {
                     msgFromChatLog.add(line);
-                    System.out.println(line);
+                    //System.out.println(line);
                     if (line.equals(loginMsg)) {
-                        for (int i = (msgFromChatLog.size() - messageCount) < 0 ? 0 : msgFromChatLog.size() - messageCount; i < msgFromChatLog.size(); i++) {
+                        for (int i = (msgFromChatLog.size() - messageCount) < 0 ? 0 : msgFromChatLog.size() - messageCount;
+                             i < msgFromChatLog.size(); i++) {
                             client.sendMessage(msgFromChatLog.get(i));
-                            System.out.println(msgFromChatLog.get(i) + "\n");
+                            //System.out.println(msgFromChatLog.get(i) + "\n");
                         }
                     }
                 }

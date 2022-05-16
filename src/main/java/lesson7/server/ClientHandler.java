@@ -35,7 +35,7 @@ public class ClientHandler {
             this.socket = socket;
             this.dataInputStream = new DataInputStream(socket.getInputStream());
             this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            new Thread(() -> {
+            server.getExecutorService().execute(() -> {
                 try {
                     authentication();
                     readMessage();
@@ -44,7 +44,17 @@ public class ClientHandler {
                 } finally {
                     closeConnection();
                 }
-            }).start();
+            });
+//            new Thread(() -> {
+//                try {
+//                    authentication();
+//                    readMessage();
+//                } catch (IOException exception) {
+//                    exception.printStackTrace();
+//                } finally {
+//                    closeConnection();
+//                }
+//            }).start();
         } catch (IOException exception) {
             throw new RuntimeException("Проблема при создании обработчика.");
         }
